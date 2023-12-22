@@ -62,16 +62,54 @@ bool isCarPresent1 = false;
 bool isCarPresent2 = false;
 bool areCarsPresent = false;
 
-void setup()
+void checkCarPresence(const char *sensorName, NewPing &sonar, bool &isCarPresent)
+{
+  delay(PING_DELAY);
+
+  unsigned int distance = sonar.ping_cm();
+
+#ifdef DEBUG
+  Serial.print(F("> "));
+  Serial.print(sensorName);
+  Serial.print(F(": "));
+  Serial.print(distance);
+  Serial.println(F("cm"));
+#endif
+
+  if (distance > MIN_DISTANCE && distance < MAX_DISTANCE)
+  {
+    if (!isCarPresent)
+    {
+#ifdef VERBOSE
+      Serial.print(F("> Car "));
+      Serial.print(sensorName);
+      Serial.println(F(": True"));
+#endif
+      isCarPresent = true;
+    }
+  }
+  else
+  {
+    if (isCarPresent)
+    {
+#ifdef VERBOSE
+      Serial.print(F("> Car "));
+      Serial.print(sensorName);
+      Serial.println(F(": False"));
+#endif
+      isCarPresent = false;
+    }
+  }
+}
+
+void initSerial()
 {
   Serial.begin(115200);
   delay(10);
-#ifdef VERBOSE
-  lc.clearMatrix();
-  lc.setIntensity(DISPLAY_INTENSITY);
-  loadingAnimation(lc);
-  lc.clearMatrix();
-#endif
+}
+
+void printBootMsg()
+{
 #ifdef DEBUG
   delay(5000);
 #endif
@@ -88,76 +126,29 @@ void setup()
 #endif
   Serial.println();
 #endif
-  // max7219
+}
+
+void initDisplay()
+{
+#ifdef VERBOSE
   lc.clearMatrix();
   lc.setIntensity(DISPLAY_INTENSITY);
+  loadingAnimation(lc);
+  lc.clearMatrix();
+#endif
+}
+
+void setup()
+{
+  initSerial();
+  initDisplay();
+  printBootMsg();
 }
 
 void loop()
 {
-  // Read distance from Sonar1
-  delay(PING_DELAY);
-
-  unsigned int distance1 = sonar1.ping_cm();
-#ifdef DEBUG
-  Serial.print(F("> Sensor1: "));
-  Serial.print(distance1);
-  Serial.println(F("cm"));
-#endif
-
-  // Check if car is present
-  if (distance1 > MIN_DISTANCE && distance1 < MAX_DISTANCE)
-  {
-    if (!isCarPresent1)
-    {
-#ifdef VERBOSE
-      Serial.println(F("> Car1: True"));
-#endif
-      isCarPresent1 = true;
-    }
-  }
-  else
-  {
-    if (isCarPresent1)
-    {
-#ifdef VERBOSE
-      Serial.println(F("> Car1: False"));
-#endif
-      isCarPresent1 = false;
-    }
-  }
-
-  // Read distance from Sonar2
-  delay(PING_DELAY);
-
-  unsigned int distance2 = sonar2.ping_cm();
-#ifdef DEBUG
-  Serial.print(F("> Sensor2: "));
-  Serial.print(distance2);
-  Serial.println(F("cm"));
-#endif
-
-  // Check if car is present
-  if (distance2 > MIN_DISTANCE && distance2 < MAX_DISTANCE)
-  {
-    if (!isCarPresent2)
-    {
-#ifdef VERBOSE
-      Serial.println(F("> Car2: True"));
-#endif
-      isCarPresent2 = true;
-    }
-  }
-  else
-  {
-    if (isCarPresent2)
-    {
-#ifdef VERBOSE
-      Serial.println(F("> Car2: False"));
-#endif
-      isCarPresent2 = false;
-    }
-  }
+  checkCarPresence("Sensor1", sonar1, isCarPresent1);
+  checkCarPresence("Sensor2", sonar2, isCarPresent2);
 
   // Check if cars are present
   if (isCarPresent1 && isCarPresent2)
