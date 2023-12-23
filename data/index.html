@@ -238,8 +238,15 @@
           )}%, ${rssi} dBm`;
         }
 
-        if (parsedData.car || parsedData.distance) {
+        /*if (parsedData.car && parsedData.distance) {
           carIsPresentElement.innerHTML = parsedData.car + ' (' + parsedData.distance + 'cm)';
+        }*/
+
+        if (parsedData.car) {
+          carIsPresentElement.innerHTML = parsedData.car;
+        }
+        if (parsedData.car === false) {
+          carIsPresentElement.innerHTML = parsedData.car;
         }
 
       }
