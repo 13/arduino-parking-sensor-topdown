@@ -5,11 +5,11 @@
 #include "version.h"
 
 #define VERBOSE
-// #define DEBUG
+#define DEBUG
 
-#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [8] 0
+#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
 #define MIN_DISTANCE 0      //
-#define MAX_DISTANCE 30     // Change detection distance in cm [350]
+#define MAX_DISTANCE 200    // Change detection distance in cm [350]
 #define MAX_TIMEOUT 30000   // Turn off 8x8 in ms
 
 #if defined(ESP8266) || defined(ESP32)
@@ -53,7 +53,7 @@ LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
 
-const unsigned long PING_DELAY = 100;
+const unsigned long PING_DELAY = 150;     // [100] Better with 150ms without Serial
 unsigned long lastMillis = 0;
 
 boolean timeout = false;
@@ -173,6 +173,7 @@ void loop()
 #endif
       writeMatrix(lc, null);
       areCarsPresent = false;
+      timeout = true;
     }
   }
 
