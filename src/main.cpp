@@ -12,7 +12,6 @@
 #define MAX_DISTANCE 200    // Change detection distance in cm [350]
 #define MAX_TIMEOUT 30000   // Turn off 8x8 in ms
 
-#if defined(ESP8266) || defined(ESP32)
 // MAX7218
 #define PIN_CLK D5
 #define PIN_CS D8
@@ -23,31 +22,6 @@
 // HC-SR04 #2
 #define ECHO_PIN_2 D3
 #define TRIGGER_PIN_2 D4
-#elif defined(ARDUINO_AVR_UNO)
-// MAX7218
-#define PIN_CLK 13
-#define PIN_CS 10
-#define PIN_DATA 11
-// HC-SR04 #1
-#define ECHO_PIN_1 2
-#define TRIGGER_PIN_1 3
-// HC-SR04 #2
-#define ECHO_PIN_2 4
-#define TRIGGER_PIN_2 5
-#elif defined(ARDUINO_AVR_PROMICRO)
-// MAX7218
-#define PIN_CLK 15  // SCLK
-#define PIN_CS 10   //
-#define PIN_DATA 16 // MOSI
-// HC-SR04 #1
-#define ECHO_PIN_1 2
-#define TRIGGER_PIN_1 3
-// HC-SR04 #2
-#define ECHO_PIN_2 4
-#define TRIGGER_PIN_2 5
-#else
-Serial.println("Unknown board type");
-#endif
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
@@ -62,14 +36,13 @@ bool isCarPresent1 = false;
 bool isCarPresent2 = false;
 bool areCarsPresent = false;
 
+// ESP
 #if defined(ESP8266)
 String hostname = "esp8266-";
 #endif
 #if defined(ESP32)
 String hostname = "esp32-";
 #endif
-
-// ESP
 // WiFi & MQTT
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
@@ -149,6 +122,11 @@ void printBootMsg()
   Serial.println(F("> "));
   Serial.print(F("> Booting... Compiled: "));
   Serial.println(VERSION);
+#if defined(ESP8266) || defined(ESP32)
+  Serial.print(F("> Node ID: "));
+  Serial.println(getUniqueID());
+  hostname += getUniqueID();
+#endif
 #ifdef VERBOSE
   Serial.print(("> Mode: "));
   Serial.print(F("VERBOSE "));
