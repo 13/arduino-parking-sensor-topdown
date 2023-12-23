@@ -3,9 +3,9 @@
 #include <NewPing.h>
 #include "LedMatrixPatterns.h"
 #include "version.h"
-
-#define VERBOSE
-#define DEBUG
+#include "wsData.h"
+#include "helpers.h"
+#include "credentials.h"
 
 #define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
 #define MIN_DISTANCE 0      //
@@ -53,14 +53,45 @@ LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
 
-const unsigned long PING_DELAY = 150;     // [100] Better with 150ms without Serial
-unsigned long lastMillis = 0;
+const unsigned long PING_DELAY = 150; // [100] Better with 150ms without Serial
+unsigned long lastMillisDisplayTimeout = 0;
 
 boolean timeout = false;
 
 bool isCarPresent1 = false;
 bool isCarPresent2 = false;
 bool areCarsPresent = false;
+
+#if defined(ESP8266)
+String hostname = "esp8266-";
+#endif
+#if defined(ESP32)
+String hostname = "esp32-";
+#endif
+
+// ESP
+// WiFi & MQTT
+WiFiClient wifiClient;
+PubSubClient mqttClient(wifiClient);
+wsData myData;
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, "pool.ntp.org", 3600);
+
+long mqttLastReconnectAttempt = 0;
+int wsDataSize = 0;
+uint8_t connectedClients = 0;
+
+unsigned long previousMinute = 0;
+
+// supplementary functions
+#ifdef VERBOSE
+// one minute mark
+#define MARK
+unsigned long lastMillisMark = 0L;
+uint32_t countMsg = 0;
+#endif
 
 void checkCarPresence(const char *sensorName, NewPing &sonar, bool &isCarPresent)
 {
@@ -143,10 +174,35 @@ void setup()
   initSerial();
   initDisplay();
   printBootMsg();
+  initFS();
+  checkWiFi();
+  mqttClient.setServer(mqtt_server, mqtt_port);
+#ifdef MQTT_SUBSCRIBE
+  mqttClient.setCallback(onMqttMessage);
+#endif
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    initMDNS();
+    connectToMqtt();
+    timeClient.begin();
+    timeClient.update();
+    myData.boottime = timeClient.getEpochTime();
+  }
+  // Initalize websocket
+  initWebSocket();
 }
 
 void loop()
 {
+  ws.cleanupClients();
+#ifdef REQUIRES_INTERNET
+  checkWiFi();
+#endif
+  checkMqtt();
+#ifdef MARK
+  printMARK();
+#endif
+
   checkCarPresence("Sensor1", sonar1, isCarPresent1);
   checkCarPresence("Sensor2", sonar2, isCarPresent2);
 
@@ -160,8 +216,10 @@ void loop()
 #endif
       writeMatrix(lc, smile);
       areCarsPresent = true;
-      lastMillis = millis();
+      lastMillisDisplayTimeout = millis();
       timeout = false;
+      myData.car = areCarsPresent;
+      notifyClients();
     }
   }
   else
@@ -174,11 +232,13 @@ void loop()
       writeMatrix(lc, null);
       areCarsPresent = false;
       timeout = true;
+      myData.car = areCarsPresent;
+      notifyClients();
     }
   }
 
   // Check for timeout
-  if (areCarsPresent && (millis() - lastMillis) > MAX_TIMEOUT)
+  if (areCarsPresent && (millis() - lastMillisDisplayTimeout) > MAX_TIMEOUT)
   {
     if (!timeout)
     {
@@ -186,7 +246,7 @@ void loop()
       Serial.println(F("> 8x8: OFF TIMEOUT"));
 #endif
       writeMatrix(lc, null);
-      lastMillis = 0;
+      lastMillisDisplayTimeout = 0;
       timeout = true;
     }
   }
