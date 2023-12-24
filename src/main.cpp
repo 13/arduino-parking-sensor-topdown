@@ -204,10 +204,8 @@ void printBootMsg()
 void initDisplay()
 {
 #ifdef VERBOSE
-  lc.clearMatrix();
-  lc.setIntensity(DISPLAY_INTENSITY);
   loadingAnimation(lc);
-  lc.clearMatrix();
+  lc.setIntensity(DISPLAY_INTENSITY);
 #endif
 }
 
@@ -256,7 +254,7 @@ void loop()
 #ifdef VERBOSE
       Serial.println(F("> Cars: True"));
 #endif
-      writeMatrix(lc, smile);
+      writeMatrixInv(lc, smile);
       areCarsPresent = true;
       lastMillisDisplayTimeout = millis();
       timeout = false;
@@ -271,7 +269,7 @@ void loop()
 #ifdef VERBOSE
       Serial.println(F("> Cars: False"));
 #endif
-      writeMatrix(lc, null);
+      writeMatrixInv(lc, arrow); // [null]
       areCarsPresent = false;
       timeout = true;
       myData.cars = areCarsPresent;
@@ -287,7 +285,7 @@ void loop()
 #ifdef VERBOSE
       Serial.println(F("> 8x8: OFF TIMEOUT"));
 #endif
-      writeMatrix(lc, null);
+      writeMatrixInv(lc, ex); // [null]
       lastMillisDisplayTimeout = 0;
       timeout = true;
     }
