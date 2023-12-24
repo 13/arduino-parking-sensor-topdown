@@ -8,8 +8,8 @@
 #include "credentials.h"
 
 #define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 0      //
-#define MAX_DISTANCE 200    // Change detection distance in cm [350]
+#define MIN_DISTANCE 10     //
+#define MAX_DISTANCE 220    // Change detection distance in cm [350]
 #define MAX_TIMEOUT 30000   // Turn off 8x8 in ms
 
 // MAX7218
@@ -35,6 +35,9 @@ boolean timeout = false;
 bool isCarPresent1 = false;
 bool isCarPresent2 = false;
 bool areCarsPresent = false;
+
+int previousDistance1 = 0;
+int previousDistance2 = 0;
 
 // ESP
 #if defined(ESP8266)
@@ -66,44 +69,80 @@ unsigned long lastMillisMark = 0L;
 uint32_t countMsg = 0;
 #endif
 
-void checkCarPresence(const char *sensorName, NewPing &sonar, bool &isCarPresent)
+void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
 {
   delay(PING_DELAY);
 
   unsigned int distance = sonar.ping_cm();
-
-#ifdef DEBUG
-  Serial.print(F("> "));
-  Serial.print(sensorName);
-  Serial.print(F(": "));
-  Serial.print(distance);
-  Serial.println(F("cm"));
-#endif
-
-  if (distance > MIN_DISTANCE && distance < MAX_DISTANCE)
+  if ((prevDistance > 0 && distance == 0) || (prevDistance == 0 && distance > 0))
   {
-    if (!isCarPresent)
-    {
 #ifdef VERBOSE
-      Serial.print(F("> Car "));
-      Serial.print(sensorName);
-      Serial.println(F(": True"));
+    Serial.print(F("> Sensor"));
+    Serial.print(sensorNum);
+    Serial.print(F(": "));
+    Serial.println(F("zero correction"));
 #endif
-      isCarPresent = true;
-    }
   }
   else
   {
-    if (isCarPresent)
+    if (sensorNum == 1)
     {
-#ifdef VERBOSE
-      Serial.print(F("> Car "));
-      Serial.print(sensorName);
-      Serial.println(F(": False"));
+      myData.distance1 = distance;
+    }
+    else
+    {
+      myData.distance2 = distance;
+    }
+#ifdef DEBUG
+    Serial.print(F("> Sensor"));
+    Serial.print(sensorNum);
+    Serial.print(F(": "));
+    Serial.print(distance);
+    Serial.println(F("cm"));
 #endif
-      isCarPresent = false;
+    if (distance > MIN_DISTANCE && distance < MAX_DISTANCE)
+    {
+      if (!isCarPresent)
+      {
+#ifdef VERBOSE
+        Serial.print(F("> Car"));
+        Serial.print(sensorNum);
+        Serial.println(F(": True"));
+#endif
+        isCarPresent = true;
+        if (sensorNum == 1)
+        {
+          myData.car1 = isCarPresent;
+        }
+        else
+        {
+          myData.car2 = isCarPresent;
+        }
+      }
+    }
+    else
+    {
+      if (isCarPresent)
+      {
+#ifdef VERBOSE
+        Serial.print(F("> Car"));
+        Serial.print(sensorNum);
+        Serial.println(F(": False"));
+#endif
+        isCarPresent = false;
+        if (sensorNum == 1)
+        {
+          myData.car1 = isCarPresent;
+        }
+        else
+        {
+          myData.car2 = isCarPresent;
+        }
+      }
     }
   }
+  prevDistance = distance;
+  notifyClients();
 }
 
 void initSerial()
@@ -181,8 +220,8 @@ void loop()
   printMARK();
 #endif
 
-  checkCarPresence("Sensor1", sonar1, isCarPresent1);
-  checkCarPresence("Sensor2", sonar2, isCarPresent2);
+  checkCarPresence(1, sonar1, isCarPresent1, previousDistance1);
+  checkCarPresence(2, sonar2, isCarPresent2, previousDistance2);
 
   // Check if cars are present
   if (isCarPresent1 && isCarPresent2)
@@ -196,7 +235,7 @@ void loop()
       areCarsPresent = true;
       lastMillisDisplayTimeout = millis();
       timeout = false;
-      myData.car = areCarsPresent;
+      myData.cars = areCarsPresent;
       notifyClients();
     }
   }
@@ -210,7 +249,7 @@ void loop()
       writeMatrix(lc, null);
       areCarsPresent = false;
       timeout = true;
-      myData.car = areCarsPresent;
+      myData.cars = areCarsPresent;
       notifyClients();
     }
   }

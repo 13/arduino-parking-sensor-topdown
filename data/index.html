@@ -63,9 +63,21 @@
                   </tr>
                   <tr>
                     <th class="ps-3">
-                      <span class="labelCarIsPresent">Car Present: </span>
+                      <span class="labelCarsArePresent">Cars Present: </span>
                     </th>
-                    <td class="text-end"><span id="carispresent"></span></td>
+                    <td class="text-end"><span id="carsarepresent"></span></td>
+                  </tr>
+                  <tr>
+                    <th class="ps-3">
+                      <span class="labelCar1IsPresent">Car1 Present: </span>
+                    </th>
+                    <td class="text-end"><span id="car1ispresent"></span></td>
+                  </tr>
+                  <tr>
+                    <th class="ps-3">
+                      <span class="labelCar2IsPresent">Car2 Present: </span>
+                    </th>
+                    <td class="text-end"><span id="car2ispresent"></span></td>
                   </tr>
                 </tbody>
               </table>
@@ -131,7 +143,9 @@
         const rssiElement = document.getElementById("rssi");
         const memFreeElement = document.getElementById("memfree");
         const memFragElement = document.getElementById("memfrag");
-        const carIsPresentElement = document.getElementById("carispresent");
+        const carsArePresentElement = document.getElementById("carsarepresent");
+        const car1IsPresentElement = document.getElementById("car1ispresent");
+        const car2IsPresentElement = document.getElementById("car2ispresent");
 
         if (parsedData.hostname) {
           document.querySelector("title").textContent = parsedData.hostname;
@@ -238,17 +252,20 @@
           )}%, ${rssi} dBm`;
         }
 
-        /*if (parsedData.car && parsedData.distance) {
-          carIsPresentElement.innerHTML = parsedData.car + ' (' + parsedData.distance + 'cm)';
-        }*/
-
-        if (parsedData.car) {
-          carIsPresentElement.innerHTML = parsedData.car;
+        if (parsedData.car1 && parsedData.distance1) {
+          car1IsPresentElement.innerHTML =
+            parsedData.car1 + " (" + parsedData.distance1 + "cm)";
         }
-        if (parsedData.car === false) {
-          carIsPresentElement.innerHTML = parsedData.car;
+        if (parsedData.car2 && parsedData.distance2) {
+          car2IsPresentElement.innerHTML =
+            parsedData.car2 + " (" + parsedData.distance2 + "cm)";
         }
-
+        if (parsedData.cars) {
+          carsArePresentElement.innerHTML = parsedData.cars;
+        }
+        if (parsedData.cars === false) {
+          carsArePresentElement.innerHTML = parsedData.cars;
+        }
       }
 
       window.addEventListener("load", onLoad);

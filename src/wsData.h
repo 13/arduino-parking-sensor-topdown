@@ -25,8 +25,11 @@ struct wsData
     time_t boottime;
     time_t timestamp;
     // parking sensor
-    boolean car;
-    int distance;
+    boolean car1;
+    boolean car2;
+    boolean cars;
+    int distance1;
+    int distance2;
 
     String toJson()
     {
@@ -49,8 +52,11 @@ struct wsData
         doc["boottime"] = boottime;
         doc["timestamp"] = timestamp;
         // parking sensor
-        doc["car"] = car;
-        doc["distance"] = distance;
+        doc["car1"] = car1;
+        doc["car2"] = car2;
+        doc["cars"] = cars;
+        doc["distance1"] = distance1;
+        doc["distance2"] = distance2;
 
         // Serialize the document to a JSON string
         String jsonString;
