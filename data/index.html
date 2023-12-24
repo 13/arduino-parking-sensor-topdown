@@ -252,18 +252,25 @@
           )}%, ${rssi} dBm`;
         }
 
-        if (parsedData.car1 && parsedData.distance1) {
+        if (
+          parsedData.car1 != null &&
+          parsedData.car1 !== undefined &&
+          parsedData.distance1 != null &&
+          parsedData.distance1 !== undefined
+        ) {
           car1IsPresentElement.innerHTML =
             parsedData.car1 + " (" + parsedData.distance1 + "cm)";
         }
-        if (parsedData.car2 && parsedData.distance2) {
+        if (
+          parsedData.car2 != null &&
+          parsedData.car2 !== undefined &&
+          parsedData.distance2 != null &&
+          parsedData.distance2 !== undefined
+        ) {
           car2IsPresentElement.innerHTML =
             parsedData.car2 + " (" + parsedData.distance2 + "cm)";
         }
-        if (parsedData.cars) {
-          carsArePresentElement.innerHTML = parsedData.cars;
-        }
-        if (parsedData.cars === false) {
+        if (parsedData.cars != null && parsedData.cars !== undefined) {
           carsArePresentElement.innerHTML = parsedData.cars;
         }
       }

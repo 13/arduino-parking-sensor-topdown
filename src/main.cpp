@@ -8,9 +8,10 @@
 #include "credentials.h"
 
 #define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 10     //
-#define MAX_DISTANCE 220    // Change detection distance in cm [350]
+#define MIN_DISTANCE 0      //
+#define MAX_DISTANCE 250    // Change detection distance in cm [350]
 #define MAX_TIMEOUT 30000   // Turn off 8x8 in ms
+#define ITERATIONS 8
 
 // MAX7218
 #define PIN_CLK D5
@@ -27,7 +28,7 @@ LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
 
-const unsigned long PING_DELAY = 150; // [100] Better with 150ms without Serial
+const unsigned long PING_DELAY = 50; // [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
 
 boolean timeout = false;
@@ -72,8 +73,32 @@ uint32_t countMsg = 0;
 void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
 {
   delay(PING_DELAY);
-
   unsigned int distance = sonar.ping_cm();
+
+  unsigned int cm[ITERATIONS];
+  int zeroCount = 0;
+  int newDistance = 0;
+  for (uint8_t i = 1; i < ITERATIONS; i++)
+  {
+    delay(PING_DELAY);
+    distance = sonar.ping_cm();
+    cm[i] = distance;
+    if (cm[i] == 0)
+    {
+      zeroCount++;
+    }
+    else
+    {
+      newDistance = distance;
+    }
+  }
+  if (zeroCount >= (ITERATIONS-1) / 2)
+  {
+    distance = 0;
+  } else {
+    distance = newDistance;
+  }
+
   if ((prevDistance > 0 && distance == 0) || (prevDistance == 0 && distance > 0))
   {
 #ifdef VERBOSE
