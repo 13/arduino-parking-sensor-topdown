@@ -102,7 +102,7 @@ byte timedout[8] = {
     B00011000,
     B00011000};
 
-void initDisplay(LedController &lc, uint8 intensity)
+void initDisplay(LedController &lc, unsigned int intensity)
 {
   loadingAnimation(lc);
   lc.setIntensity(intensity);
