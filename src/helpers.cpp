@@ -134,10 +134,13 @@ void checkWiFi()
   {
     connectToWiFi();
   }
-  if (WiFi.status() == WL_CONNECTED)
+  else
   {
-    Serial.print("> [WiFi] IP: ");
-    Serial.println(WiFi.localIP().toString());
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      Serial.print("> [WiFi] IP: ");
+      Serial.println(WiFi.localIP().toString());
+    }
   }
 }
 

@@ -92,6 +92,47 @@ byte smile[8] = {
     B01000010,
     B00111100};
 
+byte timedout[8] = {
+    B11111111,
+    B11111111,
+    B00011000,
+    B00011000,
+    B00011000,
+    B00011000,
+    B00011000,
+    B00011000};
+
+void initDisplay(LedController &lc, uint8 intensity)
+{
+  loadingAnimation(lc);
+  lc.setIntensity(intensity);
+}
+
+void loadingAnimation(LedController &lc)
+{
+  lc.clearMatrix();
+  lc.setIntensity(0);
+  for (int j = 0; j < 4; j++)
+  {
+    for (int i = 0; i < 8; i++)
+    {
+      lc.setColumn(0, i, B11111111);
+      delay(1);
+      if (i != 3)
+      {
+        lc.setColumn(0, 7 - i, B11111111);
+        delay(1);
+      }
+      delay(80);
+      if (j != 3)
+      {
+        lc.clearMatrix();
+      }
+    }
+  }
+  lc.clearMatrix();
+}
+
 /*
   ||||
 ...12...
@@ -132,29 +173,4 @@ void writeMatrixInv(LedController &lc, byte bname[8])
     lc.setColumn(0, col, mirrored[col]);
     delay(1);
   }
-}
-
-void loadingAnimation(LedController &lc)
-{
-  lc.clearMatrix();
-  lc.setIntensity(0);
-  for (int j = 0; j < 4; j++)
-  {
-    for (int i = 0; i < 8; i++)
-    {
-      lc.setColumn(0, i, B11111111);
-      delay(1);
-      if (i != 3)
-      {
-        lc.setColumn(0, 7 - i, B11111111);
-        delay(1);
-      }
-      delay(50);
-      if (j != 3)
-      {
-        lc.clearMatrix();
-      }
-    }
-  }
-  lc.clearMatrix();
 }

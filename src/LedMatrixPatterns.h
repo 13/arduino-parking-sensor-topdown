@@ -15,7 +15,9 @@ extern byte num3[8];
 extern byte num4[8];
 extern byte num5[8];
 extern byte smile[8];
+extern byte timedout[8];
 
+void initDisplay(LedController &lc, uint8 intensity);
 void loadingAnimation(LedController &lc);
 void writeMatrix(LedController &lc, byte bname[8]);
 void writeMatrixInv(LedController &lc, byte bname[8]);
