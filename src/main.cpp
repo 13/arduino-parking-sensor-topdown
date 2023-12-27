@@ -9,9 +9,9 @@
 
 #define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
 #define MIN_DISTANCE 0        // 
-#define MAX_DISTANCE 190      // [216]
+#define MAX_DISTANCE 210      // [216]
 #define MAX_TIMEOUT 25000     // Turn off 8x8 in ms
-#define ITERATIONS 5          // [10]
+#define ITERATIONS 1          // [10]
 
 // MAX7218
 #define PIN_CLK D5
@@ -77,7 +77,7 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   unsigned int cm[ITERATIONS];
   int zeroCount = 0;
   int newDistance = 0;
-  for (uint8_t i = 1; i < ITERATIONS; i++)
+  for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
     distance = sonar.ping_cm();
