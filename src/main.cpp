@@ -1,17 +1,16 @@
 #include <Arduino.h>
 #include <LedController.hpp>
-#include <NewPing.h>
 #include "LedMatrixPatterns.h"
 #include "version.h"
 #include "wsData.h"
 #include "helpers.h"
 #include "credentials.h"
 
-#define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 20       // [>13]
-#define MAX_DISTANCE 190      // [<217]
-#define MAX_TIMEOUT 25000     // Turn off 8x8 in ms
-#define ITERATIONS 5          // [10]
+#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
+#define MIN_DISTANCE 20     // [>13]
+#define MAX_DISTANCE 190    // [<217]
+#define MAX_TIMEOUT 25000   // Turn off 8x8 in ms
+// #define ITERATIONS 5        // [10]
 
 // MAX7218
 #define PIN_CLK D5
@@ -25,10 +24,8 @@
 #define TRIGGER_PIN_2 D4
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
-NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
-NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
 
-const unsigned long PING_DELAY = 50; // [100] Better with 150ms without Serial
+const unsigned long PING_DELAY = 0; // 50 [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
 
 boolean timeout = false;
@@ -70,7 +67,7 @@ unsigned long lastMillisMark = 0L;
 uint32_t countMsg = 0;
 #endif
 
-void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
+void checkCarPresence(int sensorNum, int echoPin, int trigPin, bool &isCarPresent, int &prevDistance)
 {
 #ifdef ITERATIONS
   unsigned int distance = 0;
@@ -80,7 +77,11 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
-    distance = sonar.ping_cm();
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+    int duration = pulseIn(echoPin, HIGH);
+    int distance = round(duration * 0.0343 / 2.0);
     cm[i] = distance;
     if (cm[i] == 0)
     {
@@ -107,7 +108,11 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   }
 #else
   delay(PING_DELAY);
-  unsigned int distance = sonar.ping_cm();
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  int duration = pulseIn(echoPin, HIGH);
+  int distance = round(duration * 0.0343 / 2.0);
 #endif
 
   if (sensorNum == 1)
@@ -205,6 +210,10 @@ void setup()
   initSerial();
   printBootMsg();
   initDisplay(lc, DISPLAY_INTENSITY);
+  pinMode(TRIGGER_PIN_1, OUTPUT);
+  pinMode(ECHO_PIN_1, INPUT);
+  pinMode(TRIGGER_PIN_2, OUTPUT);
+  pinMode(ECHO_PIN_2, INPUT);
   initFS();
   checkWiFi();
   mqttClient.setServer(mqtt_server, mqtt_port);
@@ -234,8 +243,8 @@ void loop()
   printMARK();
 #endif
 
-  checkCarPresence(1, sonar1, isCarPresent1, previousDistance1);
-  checkCarPresence(2, sonar2, isCarPresent2, previousDistance2);
+  checkCarPresence(1, ECHO_PIN_1, TRIGGER_PIN_1, isCarPresent1, previousDistance1);
+  checkCarPresence(2, ECHO_PIN_2, TRIGGER_PIN_2, isCarPresent2, previousDistance2);
 
   // Check if cars are present
   if (isCarPresent1 && isCarPresent2)
