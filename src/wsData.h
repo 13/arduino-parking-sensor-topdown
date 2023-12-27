@@ -6,7 +6,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
-const int MAX_PACKETS = 5;
+const int MAX_CARS = 2;
 
 struct wsData
 {
@@ -25,11 +25,9 @@ struct wsData
     time_t boottime;
     time_t timestamp;
     // parking sensor
-    boolean car1;
-    boolean car2;
-    boolean cars;
-    int distance1;
-    int distance2;
+    boolean cars[MAX_CARS];
+    int distances[MAX_CARS];
+    boolean garageFull;
 
     String toJson()
     {
@@ -52,11 +50,19 @@ struct wsData
         doc["boottime"] = boottime;
         doc["timestamp"] = timestamp;
         // parking sensor
-        doc["car1"] = car1;
-        doc["car2"] = car2;
-        doc["cars"] = cars;
-        doc["distance1"] = distance1;
-        doc["distance2"] = distance2;
+        doc["garageFull"] = garageFull;
+
+        // Add the packets array to the document
+        JsonArray carsArray = doc.createNestedArray("cars");
+        for (int i = 0; i < MAX_CARS; ++i)
+        {
+            carsArray.add(cars[i]);
+        }
+        JsonArray distancesArray = doc.createNestedArray("distances");
+        for (int i = 0; i < MAX_CARS; ++i)
+        {
+            distancesArray.add(distances[i]);
+        }
 
         // Serialize the document to a JSON string
         String jsonString;

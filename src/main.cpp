@@ -7,11 +7,12 @@
 #include "helpers.h"
 #include "credentials.h"
 
-#define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 20       // [>13]
-#define MAX_DISTANCE 200      // [<217]
-#define MAX_TIMEOUT 25000     // Turn off 8x8 in ms
-#define ITERATIONS 10          // [10]
+#define SONAR_NUM 2
+#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
+#define MIN_DISTANCE 20     // [>13]
+#define MAX_DISTANCE 200    // [<217]
+#define MAX_TIMEOUT 25000   // Turn off 8x8 in ms
+#define ITERATIONS 10       // [10]
 
 // MAX7218
 #define PIN_CLK D5
@@ -25,20 +26,16 @@
 #define TRIGGER_PIN_2 D4
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
-NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
-NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
+NewPing sonar[SONAR_NUM] = {
+    NewPing(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE),
+    NewPing(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE)};
 
 const unsigned long PING_DELAY = 50; // 50 [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
-
 boolean timeout = false;
-
-bool isCarPresent1 = false;
-bool isCarPresent2 = false;
-bool areCarsPresent = false;
-
-int previousDistance1 = 0;
-int previousDistance2 = 0;
+int previousDistance[SONAR_NUM] = {0, 0};
+bool isCarPresent[SONAR_NUM] = {false, false};
+bool isGarageFull = false;
 
 // ESP
 #if defined(ESP8266)
@@ -110,14 +107,8 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   unsigned int distance = sonar.ping_cm();
 #endif
 
-  if (sensorNum == 1)
-  {
-    myData.distance1 = distance;
-  }
-  else
-  {
-    myData.distance2 = distance;
-  }
+  myData.distances[sensorNum] = distance;
+
 #ifdef DEBUG
   Serial.print(F("> Sensor"));
   Serial.print(sensorNum);
@@ -135,14 +126,7 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
       Serial.println(F(": True"));
 #endif
       isCarPresent = true;
-      if (sensorNum == 1)
-      {
-        myData.car1 = isCarPresent;
-      }
-      else
-      {
-        myData.car2 = isCarPresent;
-      }
+      myData.cars[sensorNum] = isCarPresent;
     }
   }
   else
@@ -155,14 +139,7 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
       Serial.println(F(": False"));
 #endif
       isCarPresent = false;
-      if (sensorNum == 1)
-      {
-        myData.car1 = isCarPresent;
-      }
-      else
-      {
-        myData.car2 = isCarPresent;
-      }
+      myData.cars[sensorNum] = isCarPresent;
     }
   }
   prevDistance = distance;
@@ -233,40 +210,41 @@ void loop()
 #ifdef MARK
   printMARK();
 #endif
-
-  checkCarPresence(1, sonar1, isCarPresent1, previousDistance1);
-  checkCarPresence(2, sonar2, isCarPresent2, previousDistance2);
+  for (uint8_t i = 0; i < SONAR_NUM; i++)
+  {
+    checkCarPresence(i, sonar[i], isCarPresent[i], previousDistance[i]);
+  }
 
   // Check if cars are present
-  if (isCarPresent1 && isCarPresent2)
+  if (isCarPresent[0] && isCarPresent[1])
   {
-    if (!areCarsPresent)
+    if (!isGarageFull)
     {
 
-      areCarsPresent = true;
+      isGarageFull = true;
 #ifdef VERBOSE
-      Serial.print(F("> Cars: "));
-      Serial.println(areCarsPresent);
+      Serial.print(F("> Garage: "));
+      Serial.println(isGarageFull);
 #endif
       writeMatrixInv(lc, smile);
       lastMillisDisplayTimeout = millis();
       timeout = false;
-      myData.cars = areCarsPresent;
+      myData.garageFull = isGarageFull;
       notifyClients();
     }
   }
   else
   {
-    if (areCarsPresent)
+    if (isGarageFull)
     {
-      areCarsPresent = false;
+      isGarageFull = false;
 #ifdef VERBOSE
-      Serial.print(F("> Cars: "));
-      Serial.println(areCarsPresent);
+      Serial.print(F("> Garage: "));
+      Serial.println(isGarageFull);
 #endif
       writeMatrixInv(lc, arrow); // [null]
       timeout = true;
-      myData.cars = areCarsPresent;
+      myData.garageFull = isGarageFull;
       notifyClients();
     }
 #ifdef DEBUG
@@ -280,7 +258,7 @@ void loop()
   }
 
   // Check for timeout
-  if (areCarsPresent && (millis() - lastMillisDisplayTimeout) > MAX_TIMEOUT)
+  if (isGarageFull && (millis() - lastMillisDisplayTimeout) > MAX_TIMEOUT)
   {
     if (!timeout)
     {

@@ -22,7 +22,7 @@
             <p id="desc" class="lead text-center"></p>
             <div>
               <table class="table table-hover mb-0">
-                <tbody>
+                <tbody id="statusbody">
                   <tr>
                     <th class="ps-3">
                       <span class="labelMqtt">SSID: </span>
@@ -63,21 +63,21 @@
                   </tr>
                   <tr>
                     <th class="ps-3">
-                      <span class="labelCarsArePresent">Cars Present: </span>
+                      <span class="labelgarageIsFull">Garage Full: </span>
                     </th>
-                    <td class="text-end"><span id="carsarepresent"></span></td>
+                    <td class="text-end"><span id="garageisfull"></span></td>
                   </tr>
                   <tr>
                     <th class="ps-3">
-                      <span class="labelCar1IsPresent">Car1 Present: </span>
+                      <span class="labelcarIsPresent0">Car1: </span>
                     </th>
-                    <td class="text-end"><span id="car1ispresent"></span></td>
+                    <td class="text-end"><span id="carispresent0"></span></td>
                   </tr>
                   <tr>
                     <th class="ps-3">
-                      <span class="labelCar2IsPresent">Car2 Present: </span>
+                      <span class="labelcarIsPresent1">Car2: </span>
                     </th>
-                    <td class="text-end"><span id="car2ispresent"></span></td>
+                    <td class="text-end"><span id="carispresent1"></span></td>
                   </tr>
                 </tbody>
               </table>
@@ -145,9 +145,7 @@
         const rssiElement = document.getElementById("rssi");
         const memFreeElement = document.getElementById("memfree");
         const memFragElement = document.getElementById("memfrag");
-        const carsArePresentElement = document.getElementById("carsarepresent");
-        const car1IsPresentElement = document.getElementById("car1ispresent");
-        const car2IsPresentElement = document.getElementById("car2ispresent");
+        const garageIsFullElement = document.getElementById("garageisfull");
 
         if (parsedData.hostname) {
           document.querySelector("title").textContent = parsedData.hostname;
@@ -201,25 +199,6 @@
           memFragElement.innerHTML = " (frag. " + parsedData.memfrag + "%)";
         }
 
-        // Uptime old
-        /*if (parsedData.uptime &&
-            parsedData.boottime !== null &&
-            parsedData.boottime !== "") {
-            const totalMinutes = parsedData.uptime;
-            const totalMinutesPerDay = 24 * 60;
-            const days = Math.floor(totalMinutes / totalMinutesPerDay);
-            const hours = Math.floor((totalMinutes % totalMinutesPerDay) / 60);
-            const minutes = totalMinutes % 60;
-
-            // Function to pad single-digit values with leading zeros
-            const padWithZero = (value) =>
-              value < 10 ? `0${value}` : `${value}`;
-
-            const formattedUptime = `${days ? days + "T" : ""}${padWithZero(
-              hours
-            )}:${padWithZero(minutes)}:01`;
-          uptimeElement.innerHTML = formattedUptime;
-        }*/
         // Uptime
         if (
           parsedData.boottime &&
@@ -261,25 +240,27 @@
         }
 
         if (
-          parsedData.car1 != null &&
-          parsedData.car1 !== undefined &&
-          parsedData.distance1 != null &&
-          parsedData.distance1 !== undefined
+          Array.isArray(parsedData.cars) &&
+          Array.isArray(parsedData.distances) &&
+          parsedData.cars.length === parsedData.distances.length
         ) {
-          car1IsPresentElement.innerHTML =
-            parsedData.car1 + " (" + parsedData.distance1 + "cm)";
+          for (let i = 0; i < parsedData.cars.length; i++) {
+            const carIsPresentElement = document.getElementById(
+              `carispresent${i}`
+            );
+
+            if (carIsPresentElement) {
+              carIsPresentElement.innerHTML =
+                parsedData.cars[i] + " (" + parsedData.distances[i] + "cm)";
+            }
+          }
         }
+
         if (
-          parsedData.car2 != null &&
-          parsedData.car2 !== undefined &&
-          parsedData.distance2 != null &&
-          parsedData.distance2 !== undefined
+          parsedData.garageFull != null &&
+          parsedData.garageFull !== undefined
         ) {
-          car2IsPresentElement.innerHTML =
-            parsedData.car2 + " (" + parsedData.distance2 + "cm)";
-        }
-        if (parsedData.cars != null && parsedData.cars !== undefined) {
-          carsArePresentElement.innerHTML = parsedData.cars;
+          garageIsFullElement.innerHTML = parsedData.garageFull;
         }
       }
 

@@ -15,6 +15,7 @@ extern byte num3[8];
 extern byte num4[8];
 extern byte num5[8];
 extern byte smile[8];
+extern byte smilex[8];
 extern byte timedout[8];
 
 void initDisplay(LedController &lc, unsigned int intensity);
