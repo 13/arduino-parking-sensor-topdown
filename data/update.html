@@ -90,6 +90,13 @@
         websocket.onmessage = onMessage;
       }
 
+      function closeWebSocket() {
+        if (websocket) {
+          console.log("Closing WebSocket connection...");
+          websocket.close();
+        }
+      }
+
       function onOpen(event) {
         console.log("Connection opened");
         var element = document.getElementById("ws-state");
@@ -113,6 +120,8 @@
         setTimeout(initWebSocket, 2000);
       }
 
+      let previousVersion = null;
+
       function onMessage(event) {
         const parsedData = JSON.parse(event.data);
         console.log("JSON: " + event.data);
@@ -121,10 +130,6 @@
         const hostnameElement = document.getElementById("hostname");
         const descElement = document.getElementById("desc");
         const versionElement = document.getElementById("version");
-        const updateStatusElement = document.getElementById("updateStatus");
-        const updateModalMessage =
-          document.getElementById("updateModalMessage");
-        const loadingSpinner = document.getElementById("loadingSpinner");
 
         if (parsedData.hostname) {
           document.querySelector("title").textContent = parsedData.hostname;
@@ -134,15 +139,23 @@
           descElement.innerHTML = parsedData.desc;
         }
         if (parsedData.version) {
-          versionElement.innerHTML =
-            '<a href="/update.html" class="link-light link-offset-2 link-underline link-underline-opacity-0 text-muted small">' +
-            parsedData.version +
-            "</a>";
+          // Check if the version has changed
+          if (parsedData.version !== previousVersion) {
+            // Update the HTML element
+            versionElement.innerHTML =
+              '<a href="/update.html" class="link-light link-offset-2 link-underline link-underline-opacity-0 text-muted small">' +
+              parsedData.version +
+              "</a>";
+
+            // Update the previousVersion variable
+            previousVersion = parsedData.version;
+          }
         }
       }
 
       function performFirmwareUpdate(event) {
         event.preventDefault();
+        closeWebSocket();
 
         // Display the Bootstrap modal when the firmware update starts
         showUpdateModal();

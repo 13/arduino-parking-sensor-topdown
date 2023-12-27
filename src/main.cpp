@@ -8,10 +8,10 @@
 #include "credentials.h"
 
 #define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 0        // 
-#define MAX_DISTANCE 210      // [216]
+#define MIN_DISTANCE 20       // [>13]
+#define MAX_DISTANCE 190      // [<217]
 #define MAX_TIMEOUT 25000     // Turn off 8x8 in ms
-#define ITERATIONS 1          // [10]
+#define ITERATIONS 5          // [10]
 
 // MAX7218
 #define PIN_CLK D5

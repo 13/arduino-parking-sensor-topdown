@@ -127,6 +127,8 @@
         setTimeout(initWebSocket, 2000);
       }
 
+      let previousVersion = null;
+
       function onMessage(event) {
         const parsedData = JSON.parse(event.data);
         console.log("JSON: " + event.data);
@@ -178,12 +180,18 @@
             ":" +
             timestamp.getSeconds().toString().padStart(2, "0");
         }
-
         if (parsedData.version) {
-          versionElement.innerHTML =
-            '<a href="/update.html" class="link-light link-offset-2 link-underline link-underline-opacity-0 text-muted small">' +
-            parsedData.version +
-            "</a>";
+          // Check if the version has changed
+          if (parsedData.version !== previousVersion) {
+            // Update the HTML element
+            versionElement.innerHTML =
+              '<a href="/update.html" class="link-light link-offset-2 link-underline link-underline-opacity-0 text-muted small">' +
+              parsedData.version +
+              "</a>";
+
+            // Update the previousVersion variable
+            previousVersion = parsedData.version;
+          }
         }
         if (parsedData.memfree) {
           memFreeElement.innerHTML =
