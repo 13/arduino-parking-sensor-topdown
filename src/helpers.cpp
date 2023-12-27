@@ -356,17 +356,17 @@ void initWebSocket()
   server.on("/reboot", HTTP_GET, [](AsyncWebServerRequest *request)
             {
           AsyncWebServerResponse *response;
-          if (myData.uptime > 2) {
+          //if (myData.uptime >= 1) {
             response = request->beginResponse(200, "application/json", "{\"reboot\":true,\"message\":\"Rebooting...\"}");
             response->addHeader("Connection", "close");
             request->send(response);
             Serial.println(F("> [HTTP] Rebooting..."));
             reboot();
-          } else {
+          /*} else {
             response = request->beginResponse(200, "application/json", "{\"reboot\":false,\"message\":\"Uptime less than or equal to 2, not rebooting.\"}");
             response->addHeader("Connection", "close");
             request->send(response);
-          } });
+          }*/ });
   server.on("/update.html", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(LittleFS, "/update.html", "text/html"); });
   server.on(

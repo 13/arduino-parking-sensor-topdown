@@ -9,9 +9,9 @@
 
 #define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
 #define MIN_DISTANCE 20       // [>13]
-#define MAX_DISTANCE 190      // [<217]
+#define MAX_DISTANCE 200      // [<217]
 #define MAX_TIMEOUT 25000     // Turn off 8x8 in ms
-#define ITERATIONS 5          // [10]
+#define ITERATIONS 10          // [10]
 
 // MAX7218
 #define PIN_CLK D5
@@ -28,7 +28,7 @@ LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar1(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE);
 NewPing sonar2(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE);
 
-const unsigned long PING_DELAY = 50; // [100] Better with 150ms without Serial
+const unsigned long PING_DELAY = 50; // 50 [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
 
 boolean timeout = false;

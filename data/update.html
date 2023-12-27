@@ -81,6 +81,7 @@
     <script>
       var gateway = `ws://${window.location.hostname}/ws`;
       var websocket;
+      var reconnectTime = 10000;
 
       function initWebSocket() {
         console.log("Trying to open a WebSocket connection...");
@@ -93,6 +94,7 @@
       function closeWebSocket() {
         if (websocket) {
           console.log("Closing WebSocket connection...");
+          reconnectTime = 60000;
           websocket.close();
         }
       }
@@ -117,7 +119,7 @@
         if (!element.classList.contains("border-danger")) {
           element.classList.add("border-danger");
         }
-        setTimeout(initWebSocket, 2000);
+        setTimeout(initWebSocket, reconnectTime);
       }
 
       let previousVersion = null;
