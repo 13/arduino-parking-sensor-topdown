@@ -94,7 +94,6 @@
       function closeWebSocket() {
         if (websocket) {
           console.log("Closing WebSocket connection...");
-          reconnectTime = 60000;
           websocket.close();
         }
       }
