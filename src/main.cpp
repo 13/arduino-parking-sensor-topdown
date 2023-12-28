@@ -8,11 +8,11 @@
 #include "credentials.h"
 
 #define SONAR_NUM 2
-#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 20     // [>13]
-#define MAX_DISTANCE 200    // [<217]
-#define MAX_TIMEOUT 25000   // Turn off 8x8 in ms
-#define ITERATIONS 10       // [10]
+#define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
+#define MIN_DISTANCE 0        // [>13] 20
+#define MAX_DISTANCE 200      // [<217] 200 
+#define MAX_TIMEOUT 25000     // Turn off 8x8 in ms 25000
+#define ITERATIONS 5          // [10] 5
 
 // MAX7218
 #define PIN_CLK D5
@@ -158,6 +158,7 @@ void printBootMsg()
   delay(5000);
 #endif
   // Start Boot
+  delay(1000);
   Serial.println(F("> "));
   Serial.println(F("> "));
   Serial.print(F("> Booting... Compiled: "));
@@ -231,6 +232,7 @@ void loop()
       timeout = false;
       myData.garageFull = isGarageFull;
       notifyClients();
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
     }
   }
   else
@@ -242,17 +244,18 @@ void loop()
       Serial.print(F("> Garage: "));
       Serial.println(isGarageFull);
 #endif
-      writeMatrixInv(lc, arrow); // [null]
+      writeMatrixInv(lc, null); // [null]
       timeout = true;
       myData.garageFull = isGarageFull;
       notifyClients();
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
     }
 #ifdef DEBUG
     else
     {
-      Serial.print(F("> Cars: "));
-      Serial.println(areCarsPresent);
-      writeMatrixInv(lc, num5);
+      Serial.print(F("> Garage: "));
+      Serial.println(isGarageFull);
+      writeMatrixInv(lc, error);
     }
 #endif
   }
@@ -265,7 +268,7 @@ void loop()
 #ifdef VERBOSE
       Serial.println(F("> 8x8: OFF TIMEOUT"));
 #endif
-      writeMatrixInv(lc, timedout); // [null]
+      writeMatrixInv(lc, null); // [null]
       lastMillisDisplayTimeout = 0;
       timeout = true;
     }

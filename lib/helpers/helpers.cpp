@@ -17,6 +17,11 @@ void reboot()
   ESP.restart();
 }
 
+// boolToString()
+const char* boolToString(boolean value) {
+  return value ? "true" : "false";
+}
+
 // Initialize LittleFS
 void initFS()
 {

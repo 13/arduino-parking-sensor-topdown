@@ -52,6 +52,7 @@ extern uint8_t connectedClients;
 String getUniqueID();
 void getState();
 void reboot();
+const char* boolToString(boolean value);
 void checkWiFi();
 void connectToWiFi();
 void initFS();
