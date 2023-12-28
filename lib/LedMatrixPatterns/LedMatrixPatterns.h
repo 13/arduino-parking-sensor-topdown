@@ -7,6 +7,7 @@
 #include <LedController.hpp>
 
 extern byte arrow[8];
+extern byte error[8];
 extern byte ex[8];
 extern byte null[8];
 extern byte num1[8];
