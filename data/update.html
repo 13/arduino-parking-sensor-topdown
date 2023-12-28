@@ -62,7 +62,7 @@
                     >
                       <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p id="updateModalMessage" class="m-0">Updating...</p>
+                    <p id="updateModalMessage" class="m-0"></p>
                   </div>
                 </div>
               </div>
@@ -156,13 +156,17 @@
 
       function performFirmwareUpdate(event) {
         event.preventDefault();
-        closeWebSocket();
+        //closeWebSocket();
 
         // Display the Bootstrap modal when the firmware update starts
         showUpdateModal();
 
         // Assuming you have a form with the ID "updateForm"
         const form = document.getElementById("updateForm");
+        const fileInput = document.getElementById("file");
+        const updateModalMessage =
+          document.getElementById("updateModalMessage");
+
         const formData = new FormData(form);
 
         // Display the loading spinner while the update is in progress
@@ -177,8 +181,6 @@
             // Check if the firmware update was successful
             if (data.success) {
               // Update the content of the modal with the success message and set the color to green
-              const updateModalMessage =
-                document.getElementById("updateModalMessage");
               updateModalMessage.innerHTML = `<p class="text-success m-0">${data.message}</p><p class="m-0">Rebooting...</p>`;
               // Trigger a reboot after a successful update
               fetch("/reboot")
@@ -197,8 +199,6 @@
                 });
             } else {
               // Update the content of the modal with the error message and set the color to red
-              const updateModalMessage =
-                document.getElementById("updateModalMessage");
               updateModalMessage.innerHTML = `<p class="text-danger m-0">Error: ${data.message}</p>`;
               setTimeout(hideUpdateModal, 5000);
             }
@@ -206,8 +206,6 @@
           .catch((error) => {
             console.error("Error:", error);
             // Update the content of the modal with the error message and set the color to red
-            const updateModalMessage =
-              document.getElementById("updateModalMessage");
             updateModalMessage.innerHTML =
               '<p class="text-danger m-0">Update failed</p>';
             // If there was an error, hide the modal immediately
@@ -281,6 +279,20 @@
 
         // Assuming you have a form with the ID "updateForm"
         const updateForm = document.getElementById("updateForm");
+        const fileInput = document.getElementById("file");
+        const updateModalMessage =
+          document.getElementById("updateModalMessage");
+
+        // Add an event listener to the file input
+        fileInput.addEventListener("change", function (event) {
+          // Get the selected file name
+          const fileName = event.target.files[0].name;
+
+          // Update the updateModalMessage with the file name
+          updateModalMessage.innerHTML = `<p class="m-0">Updating...</p><p class="m-0">${fileName}</p>`;
+        });
+
+        // Assuming you have a form with the ID "updateForm"
         updateForm.addEventListener("submit", performFirmwareUpdate);
       }
     </script>
