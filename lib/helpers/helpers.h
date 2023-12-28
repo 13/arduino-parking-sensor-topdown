@@ -22,8 +22,8 @@
 #include <PubSubClient.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-#include "version.h"
-#include "wsData.h"
+#include "../../include/version.h"
+#include <wsData.h>
 
 #define INTERVAL_1MIN (1 * 60 * 1000L)
 

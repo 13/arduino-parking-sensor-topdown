@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <LedController.hpp>
 #include <NewPing.h>
-#include "LedMatrixPatterns.h"
-#include "version.h"
-#include "wsData.h"
-#include "helpers.h"
+#include <LedMatrixPatterns.h>
+#include "../include/version.h"
+#include <wsData.h>
+#include <helpers.h>
 #include "credentials.h"
 
 #define SONAR_NUM 2
