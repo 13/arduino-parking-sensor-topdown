@@ -12,7 +12,7 @@ byte arrow[8] = {
     B01000100,
     B10000010};
 
-byte timedout[8] = {
+byte error[8] = {
     B11111110,
     B10000000,
     B10000000,
