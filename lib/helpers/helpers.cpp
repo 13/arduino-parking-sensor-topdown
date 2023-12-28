@@ -22,6 +22,14 @@ const char* boolToString(boolean value) {
   return value ? "true" : "false";
 }
 
+// Turn off builtin LED
+void turnOffLed()
+{
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+
 // Initialize LittleFS
 void initFS()
 {

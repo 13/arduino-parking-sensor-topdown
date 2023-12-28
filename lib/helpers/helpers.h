@@ -53,6 +53,7 @@ String getUniqueID();
 void getState();
 void reboot();
 const char* boolToString(boolean value);
+void turnOffLed();
 void checkWiFi();
 void connectToWiFi();
 void initFS();

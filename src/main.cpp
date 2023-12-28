@@ -8,11 +8,11 @@
 #include "credentials.h"
 
 #define SONAR_NUM 2
-#define DISPLAY_INTENSITY 0   // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 0        // [>13] 20
-#define MAX_DISTANCE 200      // [<217] 200 
-#define MAX_TIMEOUT 25000     // Turn off 8x8 in ms 25000
-#define ITERATIONS 5          // [10] 5
+#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
+#define MIN_DISTANCE 0      // [>13] 20
+#define MAX_DISTANCE 200    // [<217] 200
+#define MAX_TIMEOUT 25000   // Turn off 8x8 in ms 25000
+#define ITERATIONS 5        // [10] 5
 
 // MAX7218
 #define PIN_CLK D5
@@ -182,6 +182,7 @@ void setup()
 {
   initSerial();
   printBootMsg();
+  turnOffLed(); // use with caution
   initDisplay(lc, DISPLAY_INTENSITY);
   initFS();
   checkWiFi();
