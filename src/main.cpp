@@ -13,6 +13,8 @@
 #define MAX_DISTANCE 200    // [<217] 200
 #define MAX_TIMEOUT 25000   // Turn off 8x8 in ms 25000
 #define ITERATIONS 5        // [10] 5
+#define MAX_CHANGES_PER_MINUTE 10
+#define MILLIS_PER_MINUTE 60000
 
 // MAX7218
 #define PIN_CLK D5
@@ -33,9 +35,18 @@ NewPing sonar[SONAR_NUM] = {
 const unsigned long PING_DELAY = 50; // 50 [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
 boolean timeout = false;
-int previousDistance[SONAR_NUM] = {0, 0};
-bool isCarPresent[SONAR_NUM] = {false, false};
+
+unsigned long lastGarageChangeTime = 0;
+unsigned int garageChanges = 0;
 bool isGarageFull = false;
+
+struct Cars
+{
+  int previousDistance[SONAR_NUM];
+  bool present[SONAR_NUM];
+};
+
+Cars myCars;
 
 // ESP
 #if defined(ESP8266)
@@ -66,6 +77,15 @@ unsigned long previousMinute = 0;
 unsigned long lastMillisMark = 0L;
 uint32_t countMsg = 0;
 #endif
+
+void initializeCars()
+{
+  for (int i = 0; i < SONAR_NUM; i++)
+  {
+    myCars.previousDistance[i] = 0;
+    myCars.present[i] = false;
+  }
+}
 
 void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
 {
@@ -182,7 +202,6 @@ void setup()
 {
   initSerial();
   printBootMsg();
-  turnOffLed(); // use with caution
   initDisplay(lc, DISPLAY_INTENSITY);
   initFS();
   checkWiFi();
@@ -200,6 +219,8 @@ void setup()
   }
   // Initalize websocket
   initWebSocket();
+  // Initalize cars
+  initializeCars();
 }
 
 void loop()
@@ -214,42 +235,63 @@ void loop()
 #endif
   for (uint8_t i = 0; i < SONAR_NUM; i++)
   {
-    checkCarPresence(i, sonar[i], isCarPresent[i], previousDistance[i]);
+    checkCarPresence(i, sonar[i], myCars.present[i], myCars.previousDistance[i]);
   }
 
   // Check if cars are present
-  if (isCarPresent[0] && isCarPresent[1])
+  if (myCars.present[0] && myCars.present[1])
   {
     if (!isGarageFull)
     {
-
-      isGarageFull = true;
+      if ((millis() - lastGarageChangeTime) >= MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE)
+      {
+        isGarageFull = true;
+        lastGarageChangeTime = millis();
+        garageChanges++;
 #ifdef VERBOSE
-      Serial.print(F("> Garage: "));
-      Serial.println(isGarageFull);
+        Serial.print(F("> Garage: "));
+        Serial.println(isGarageFull);
 #endif
-      writeMatrixInv(lc, smile);
-      lastMillisDisplayTimeout = millis();
-      timeout = false;
-      myData.garageFull = isGarageFull;
-      notifyClients();
-      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        writeMatrixInv(lc, smile);
+        lastMillisDisplayTimeout = millis();
+        timeout = false;
+        myData.garageFull = isGarageFull;
+        notifyClients();
+        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        // Reset garageChanges counter after reaching the limit
+        if (garageChanges >= MAX_CHANGES_PER_MINUTE)
+        {
+          garageChanges = 0;
+          delay(MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE);
+        }
+      }
     }
   }
   else
   {
     if (isGarageFull)
     {
-      isGarageFull = false;
+      if ((millis() - lastGarageChangeTime) >= MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE)
+      {
+        isGarageFull = false;
+        lastGarageChangeTime = millis();
+        garageChanges++;
 #ifdef VERBOSE
-      Serial.print(F("> Garage: "));
-      Serial.println(isGarageFull);
+        Serial.print(F("> Garage: "));
+        Serial.println(isGarageFull);
 #endif
-      writeMatrixInv(lc, null); // [null]
-      timeout = true;
-      myData.garageFull = isGarageFull;
-      notifyClients();
-      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        writeMatrixInv(lc, null); // [null]
+        timeout = true;
+        myData.garageFull = isGarageFull;
+        notifyClients();
+        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        // Reset garageChanges counter after reaching the limit
+        if (garageChanges >= MAX_CHANGES_PER_MINUTE)
+        {
+          garageChanges = 0;
+          delay(MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE);
+        }
+      }
     }
 #ifdef DEBUG
     else
