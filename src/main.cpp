@@ -9,10 +9,11 @@
 
 #define SONAR_NUM 2
 #define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 0      // [>13] 20
-#define MAX_DISTANCE 200    // [<217] 200
-#define MAX_TIMEOUT 25000   // Turn off 8x8 in ms 25000
-#define ITERATIONS 5        // [10] 5
+#define MIN_DISTANCE 0      // [>13] 0
+#define MAX_DISTANCE 200    // [<217] 200 170
+#define MAX_TIMEOUT 25000   // Turn off 8x8 [25000]
+#define ITERATIONS 5        // [5]
+#define MAX_CHANGE 30       //
 #define MAX_CHANGES_PER_MINUTE 10
 #define MILLIS_PER_MINUTE 60000
 
@@ -89,16 +90,22 @@ void initializeCars()
 
 void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
 {
-#ifdef ITERATIONS
+#if defined(ITERATIONS) && ITERATIONS > 1
   unsigned int distance = 0;
   unsigned int cm[ITERATIONS];
   int zeroCount = 0;
   int newDistance = 0;
+  bool allChangesWithinLimit = true;
   for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
     distance = sonar.ping_cm();
     cm[i] = distance;
+    // Check if the change is more than +-30 units
+    /*if (i > 0 && abs(static_cast<int>(cm[i] - cm[i - 1])) > MAX_CHANGE)
+    {
+      allChangesWithinLimit = false;
+    }*/
     if (cm[i] == 0)
     {
       zeroCount++;
@@ -120,7 +127,46 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   }
   else
   {
-    distance = newDistance;
+    // Check if all changes were within the limit
+    /*if (!allChangesWithinLimit)
+    {
+      // Calculate mean
+      int sum = 0;
+      for (uint8_t i = 0; i < ITERATIONS; i++)
+      {
+        sum += cm[i];
+      }
+      int mean = sum / ITERATIONS;
+#ifdef DEBUG
+      Serial.print(F("> Mean distance: "));
+      Serial.println(mean);
+#endif
+      if (mean < newDistance)
+      {
+        distance = newDistance;
+      } else {
+        distance = mean;
+      }
+    }*/
+    // Calculate mean
+    int sum = 0;
+    for (uint8_t i = 0; i < ITERATIONS; i++)
+    {
+      sum += cm[i];
+    }
+    int mean = sum / ITERATIONS;
+#ifdef DEBUG
+    Serial.print(F("> Mean distance: "));
+    Serial.println(mean);
+#endif
+    if (mean < newDistance)
+    {
+      distance = newDistance;
+    }
+    else
+    {
+      distance = mean;
+    }
   }
 #else
   delay(PING_DELAY);
