@@ -12,10 +12,7 @@
 #define MIN_DISTANCE 0      // [>13] 0
 #define MAX_DISTANCE 200    // [<217] 200 170
 #define MAX_TIMEOUT 25000   // Turn off 8x8 [25000]
-#define ITERATIONS 5        // [5]
-#define MAX_CHANGE 30       //
-#define MAX_CHANGES_PER_MINUTE 10
-#define MILLIS_PER_MINUTE 60000
+#define ITERATIONS 5        // [5] 8
 
 // MAX7218
 #define PIN_CLK D5
@@ -26,7 +23,7 @@
 #define TRIGGER_PIN_1 D2
 // HC-SR04 #2
 #define ECHO_PIN_2 D3
-#define TRIGGER_PIN_2 D4
+#define TRIGGER_PIN_2 D6
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 NewPing sonar[SONAR_NUM] = {
@@ -95,17 +92,12 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   unsigned int cm[ITERATIONS];
   int zeroCount = 0;
   int newDistance = 0;
-  bool allChangesWithinLimit = true;
   for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
     distance = sonar.ping_cm();
     cm[i] = distance;
-    // Check if the change is more than +-30 units
-    /*if (i > 0 && abs(static_cast<int>(cm[i] - cm[i - 1])) > MAX_CHANGE)
-    {
-      allChangesWithinLimit = false;
-    }*/
+
     if (cm[i] == 0)
     {
       zeroCount++;
@@ -127,46 +119,7 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   }
   else
   {
-    // Check if all changes were within the limit
-    /*if (!allChangesWithinLimit)
-    {
-      // Calculate mean
-      int sum = 0;
-      for (uint8_t i = 0; i < ITERATIONS; i++)
-      {
-        sum += cm[i];
-      }
-      int mean = sum / ITERATIONS;
-#ifdef DEBUG
-      Serial.print(F("> Mean distance: "));
-      Serial.println(mean);
-#endif
-      if (mean < newDistance)
-      {
-        distance = newDistance;
-      } else {
-        distance = mean;
-      }
-    }*/
-    // Calculate mean
-    int sum = 0;
-    for (uint8_t i = 0; i < ITERATIONS; i++)
-    {
-      sum += cm[i];
-    }
-    int mean = sum / ITERATIONS;
-#ifdef DEBUG
-    Serial.print(F("> Mean distance: "));
-    Serial.println(mean);
-#endif
-    if (mean < newDistance)
-    {
-      distance = newDistance;
-    }
-    else
-    {
-      distance = mean;
-    }
+    distance = newDistance;
   }
 #else
   delay(PING_DELAY);
@@ -289,55 +242,37 @@ void loop()
   {
     if (!isGarageFull)
     {
-      if ((millis() - lastGarageChangeTime) >= MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE)
-      {
-        isGarageFull = true;
-        lastGarageChangeTime = millis();
-        garageChanges++;
+      isGarageFull = true;
+      lastGarageChangeTime = millis();
+      garageChanges++;
 #ifdef VERBOSE
-        Serial.print(F("> Garage: "));
-        Serial.println(isGarageFull);
+      Serial.print(F("> Garage: "));
+      Serial.println(isGarageFull);
 #endif
-        writeMatrixInv(lc, smile);
-        lastMillisDisplayTimeout = millis();
-        timeout = false;
-        myData.garageFull = isGarageFull;
-        notifyClients();
-        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
-        // Reset garageChanges counter after reaching the limit
-        if (garageChanges >= MAX_CHANGES_PER_MINUTE)
-        {
-          garageChanges = 0;
-          delay(MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE);
-        }
-      }
+      writeMatrixInv(lc, smile);
+      lastMillisDisplayTimeout = millis();
+      timeout = false;
+      myData.garageFull = isGarageFull;
+      notifyClients();
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
     }
   }
   else
   {
     if (isGarageFull)
     {
-      if ((millis() - lastGarageChangeTime) >= MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE)
-      {
-        isGarageFull = false;
-        lastGarageChangeTime = millis();
-        garageChanges++;
+      isGarageFull = false;
+      lastGarageChangeTime = millis();
+      garageChanges++;
 #ifdef VERBOSE
-        Serial.print(F("> Garage: "));
-        Serial.println(isGarageFull);
+      Serial.print(F("> Garage: "));
+      Serial.println(isGarageFull);
 #endif
-        writeMatrixInv(lc, null); // [null]
-        timeout = true;
-        myData.garageFull = isGarageFull;
-        notifyClients();
-        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
-        // Reset garageChanges counter after reaching the limit
-        if (garageChanges >= MAX_CHANGES_PER_MINUTE)
-        {
-          garageChanges = 0;
-          delay(MILLIS_PER_MINUTE / MAX_CHANGES_PER_MINUTE);
-        }
-      }
+      writeMatrixInv(lc, null); // [null]
+      timeout = true;
+      myData.garageFull = isGarageFull;
+      notifyClients();
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
     }
 #ifdef DEBUG
     else
