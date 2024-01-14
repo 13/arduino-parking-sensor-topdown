@@ -8,10 +8,11 @@
 #include "credentials.h"
 
 #define SONAR_NUM 2
-#define DISPLAY_INTENSITY 0 // Set the brightness (0 to 15) [0] 8
-#define MIN_DISTANCE 0      // [>13] 0
-#define MAX_DISTANCE 200    // [<217] 200 170
+#define DISPLAY_INTENSITY 0 // Set the brightness (0-15) [0]
+#define MIN_DISTANCE 0      // [0]
+#define MAX_DISTANCE 190    // 200 [190] 170 
 #define MAX_TIMEOUT 25000   // Turn off 8x8 [25000]
+#define PING_DELAY 100      // 50 [100] [150](w/o Serial)
 #define ITERATIONS 5        // [5] 8
 
 // MAX7218
@@ -30,7 +31,6 @@ NewPing sonar[SONAR_NUM] = {
     NewPing(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE),
     NewPing(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE)};
 
-const unsigned long PING_DELAY = 50; // 50 [100] Better with 150ms without Serial
 unsigned long lastMillisDisplayTimeout = 0;
 boolean timeout = false;
 
