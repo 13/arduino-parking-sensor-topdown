@@ -7,7 +7,7 @@
 #include <helpers.h>
 #include "credentials.h"
 
-#define SONAR_NUM 2
+#define SONAR_NUM 2         // Num of sensors [2]
 #define DISPLAY_INTENSITY 0 // Set the brightness (0-15) [0]
 #define MIN_DISTANCE 0      // [0]
 #define MAX_DISTANCE 190    // 200 [190] 170
@@ -33,14 +33,15 @@
 #define PIN_CS 12
 #define PIN_DATA 13
 // HC-SR04 #1
-#define ECHO_PIN_1 23
-#define TRIGGER_PIN_1 22
+#define ECHO_PIN_1 23     // 23
+#define TRIGGER_PIN_1 22  // 22
 // HC-SR04 #2
-#define ECHO_PIN_2 19
-#define TRIGGER_PIN_2 18
+#define ECHO_PIN_2 19     // 19
+#define TRIGGER_PIN_2 18  // 18
 #endif
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
+
 NewPing sonar[SONAR_NUM] = {
     NewPing(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE),
     NewPing(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE)
