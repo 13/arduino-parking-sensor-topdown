@@ -4,7 +4,7 @@
 #include <LedMatrixPatterns.h>
 #include "../include/version.h"
 #include <wsData.h>
-#include <helpers.h>
+#include <ArduinoEspHelper.h>
 #include "credentials.h"
 
 #define SONAR_NUM 2         // Num of sensors [2]
