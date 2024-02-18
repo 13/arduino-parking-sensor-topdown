@@ -18,7 +18,8 @@ void reboot()
 }
 
 // boolToString()
-const char* boolToString(boolean value) {
+const char *boolToString(boolean value)
+{
   return value ? "true" : "false";
 }
 
@@ -28,7 +29,6 @@ void turnOffLed()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 }
-
 
 // Initialize LittleFS
 void initFS()
@@ -124,8 +124,11 @@ void printMARK()
     if (WiFi.status() == WL_CONNECTED)
     {
       connectToMqtt();
-      timeClient.update();
       notifyClients();
+      if (countMsg % 1440 == 0)
+      {
+        timeClient.update(); // slow
+      }
     }
 #ifndef REQUIRES_INTERNET
     if (countMsg % 1440 == 0)

@@ -24,8 +24,8 @@
 #define ECHO_PIN_1 D1
 #define TRIGGER_PIN_1 D2
 // HC-SR04 #2
-#define ECHO_PIN_2 D3
-#define TRIGGER_PIN_2 D6
+#define ECHO_PIN_2 D6
+#define TRIGGER_PIN_2 D3
 #endif
 #if defined(ESP32)
 // MAX7218
