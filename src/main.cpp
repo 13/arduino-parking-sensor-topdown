@@ -269,14 +269,13 @@ void loop()
       timeout = false;
       myData.garageFull = isGarageFull;
       notifyClients();
-      // mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
-      // Check for MQTT publish timeout
-      if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      /*if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
       {
         // If there is no change for 5 seconds, publish to MQTT
         mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
         lastGarageChangeTime = millis(); // Reset the timer
-      }
+      }*/
     }
   }
   else
@@ -294,13 +293,12 @@ void loop()
       timeout = true;
       myData.garageFull = isGarageFull;
       notifyClients();
-      // mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
-      // Check for MQTT publish timeout
-      if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
+      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      /*if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
       {
         mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
         lastGarageChangeTime = millis(); // Reset the timer
-      }
+      }*/
     }
 #ifdef DEBUG
     else
