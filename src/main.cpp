@@ -12,8 +12,8 @@
 #define MIN_DISTANCE 0      // [0]
 #define MAX_DISTANCE 190    // 200 [190] 170
 #define MAX_TIMEOUT 25000   // Turn off 8x8 [25000]
-#define PING_DELAY 80       // 50 [100] [150](w/o Serial)
-#define ITERATIONS 4        // [5] 8
+#define PING_DELAY 100      // 50 [100] [150](w/o Serial)
+#define ITERATIONS 8        // [5] 8
 
 #if defined(ESP8266)
 // MAX7218
@@ -107,11 +107,13 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   unsigned int cm[ITERATIONS];
   int zeroCount = 0;
   int newDistance = 0;
+  int sumDistance = 0;
   for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
     distance = sonar.ping_cm();
     cm[i] = distance;
+    sumDistance += cm[i];
 
     if (cm[i] == 0)
     {
@@ -122,13 +124,16 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
       newDistance = distance;
     }
   }
+  unsigned int meanDistance = sumDistance / ITERATIONS;
+
 #ifdef DEBUG
   Serial.print(F("> Sensor"));
   Serial.print(sensorNum);
   Serial.print(F(": zeroCount = "));
   Serial.println(zeroCount);
 #endif
-  if (zeroCount >= (ITERATIONS - 1))
+  //if (zeroCount >= (ITERATIONS - 1) || meanDistance == 0)
+  if (meanDistance == 0)
   {
     distance = 0;
   }
