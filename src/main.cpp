@@ -12,8 +12,8 @@
 #define MIN_DISTANCE 0      // [0]
 #define MAX_DISTANCE 190    // 200 [190] 170
 #define MAX_TIMEOUT 25000   // Turn off 8x8 [25000]
-#define PING_DELAY 100      // 50 [100] [150](w/o Serial)
-#define ITERATIONS 5        // [5] 8
+#define PING_DELAY 80       // 50 [100] [150](w/o Serial)
+#define ITERATIONS 4        // [5] 8
 
 #if defined(ESP8266)
 // MAX7218
@@ -33,19 +33,18 @@
 #define PIN_CS 12
 #define PIN_DATA 13
 // HC-SR04 #1
-#define ECHO_PIN_1 23     // 23
-#define TRIGGER_PIN_1 22  // 22
+#define ECHO_PIN_1 23    // 23
+#define TRIGGER_PIN_1 22 // 22
 // HC-SR04 #2
-#define ECHO_PIN_2 19     // 19
-#define TRIGGER_PIN_2 18  // 18
+#define ECHO_PIN_2 19    // 19
+#define TRIGGER_PIN_2 18 // 18
 #endif
 
 LedController lc = LedController(PIN_DATA, PIN_CLK, PIN_CS, 1);
 
 NewPing sonar[SONAR_NUM] = {
     NewPing(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE),
-    NewPing(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE)
-};
+    NewPing(TRIGGER_PIN_2, ECHO_PIN_2, MAX_DISTANCE)};
 
 unsigned long lastMillisDisplayTimeout = 0;
 boolean timeout = false;
@@ -259,7 +258,7 @@ void loop()
     if (!isGarageFull)
     {
       isGarageFull = true;
-      lastGarageChangeTime = millis();
+
       garageChanges++;
 #ifdef VERBOSE
       Serial.print(F("> Garage: "));
@@ -270,7 +269,14 @@ void loop()
       timeout = false;
       myData.garageFull = isGarageFull;
       notifyClients();
-      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      // mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      // Check for MQTT publish timeout
+      if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
+      {
+        // If there is no change for 5 seconds, publish to MQTT
+        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        lastGarageChangeTime = millis(); // Reset the timer
+      }
     }
   }
   else
@@ -278,7 +284,7 @@ void loop()
     if (isGarageFull)
     {
       isGarageFull = false;
-      lastGarageChangeTime = millis();
+
       garageChanges++;
 #ifdef VERBOSE
       Serial.print(F("> Garage: "));
@@ -288,7 +294,13 @@ void loop()
       timeout = true;
       myData.garageFull = isGarageFull;
       notifyClients();
-      mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      // mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+      // Check for MQTT publish timeout
+      if ((millis() - lastGarageChangeTime) > 3000 || lastGarageChangeTime == 0)
+      {
+        mqttClient.publish((String(mqtt_topic) + "/isFull").c_str(), boolToString(isGarageFull), true);
+        lastGarageChangeTime = millis(); // Reset the timer
+      }
     }
 #ifdef DEBUG
     else
