@@ -103,28 +103,33 @@ void initializeCars()
 void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &prevDistance)
 {
 #if defined(ITERATIONS) && ITERATIONS > 1
-  unsigned int distance = 0;
-  unsigned int cm[ITERATIONS];
-  int zeroCount = 0;
-  int newDistance = 0;
+  int distance = 0;
+  int cm[ITERATIONS];
+  //int zeroCount = 0;
+  //int newDistance = 0;
   int sumDistance = 0;
+  int maxDistance = 0;
   for (uint8_t i = 0; i < ITERATIONS; i++)
   {
     delay(PING_DELAY);
     distance = sonar.ping_cm();
     cm[i] = distance;
     sumDistance += cm[i];
+    if (distance > maxDistance){
+      maxDistance = distance;
+    }
 
-    if (cm[i] == 0)
+    /*if (cm[i] == 0)
     {
       zeroCount++;
     }
     else
     {
       newDistance = distance;
-    }
+    }*/
   }
-  unsigned int meanDistance = sumDistance / ITERATIONS;
+  //unsigned int meanDistance = sumDistance / ITERATIONS;
+  float meanDistance = static_cast<float>(sumDistance) / ITERATIONS;
 
 #ifdef DEBUG
   Serial.print(F("> Sensor"));
@@ -133,13 +138,14 @@ void checkCarPresence(int sensorNum, NewPing &sonar, bool &isCarPresent, int &pr
   Serial.println(zeroCount);
 #endif
   //if (zeroCount >= (ITERATIONS - 1) || meanDistance == 0)
-  if (meanDistance == 0)
+  if (meanDistance > 0)
   {
-    distance = 0;
+    distance = maxDistance;
   }
   else
   {
-    distance = newDistance;
+    distance = 0;
+    //distance = newDistance;
   }
 #else
   delay(PING_DELAY);
